@@ -1,5 +1,5 @@
 {
-    "name": "pragmarx/firewall",
+    "name": "maxr/firewall",
 
     "description": "A Laravel IP whitelisting and blacklisting",
 
@@ -9,9 +9,9 @@
 
     "authors": [
         {
-            "name": "Antonio Carlos Ribeiro",
-            "email": "acr@antoniocarlosribeiro.com",
-            "role": "Creator"
+            "name": "Maxime RAT",
+            "email": "overton42@hotmail.fr",
+            "role": "forker"
         }
     ],
 

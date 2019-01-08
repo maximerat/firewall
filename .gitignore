@@ -6,3 +6,4 @@ tests/geoipdb/*
 reports/*
 coverage/*
 tests/databases/*
+/nbproject/private/
