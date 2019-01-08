@@ -16,12 +16,20 @@ class CreateFirewallTable extends Migration
         Schema::create('firewall', function (Blueprint $table) {
             $table->increments('id');
 
-            $table->string('ip_address', 39)->unique()->index();
+            $table->integer('user')->unsigned()->default(null);
+            $table->foreign('user')->references('id')->on('users')->onDelete('cascade');
+            
+            $table->string('ip_address', 39)->index();
 
             $table->boolean('whitelisted')->default(false); /// default is blacklist
 
             $table->timestamps();
+            
+            $table->unique(array('user', 'ip_address'));
+
         });
+        
+        
     }
 
     /**

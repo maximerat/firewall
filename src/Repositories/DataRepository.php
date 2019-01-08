@@ -125,9 +125,9 @@ class DataRepository
      *
      * @return null|string
      */
-    public function whichList($ip_address)
+    public function whichList($ip_address, $user)
     {
-        return $this->ipList()->whichList($ip_address);
+        return $this->ipList()->whichList($ip_address, $user);
     }
 
     /**

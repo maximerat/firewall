@@ -148,6 +148,21 @@ class Firewall
     {
         return $this->dataRepository->find($ip);
     }
+    
+    
+    /**
+     * Get the IP address.
+     *
+     * @param null $ip
+     *
+     * @return null|string
+     */
+    public function getUser($user = null)
+    {
+        return $user ?: \Auth::user()->id;
+    }
+    
+    
 
     /**
      * Get the IP address.
@@ -193,7 +208,7 @@ class Firewall
     public function isBlacklisted($ip = null)
     {
         $list = $this->whichList($ip);
-
+        
         return !($list == 'whitelist') &&
                 $list == 'blacklist';
     }
@@ -277,9 +292,9 @@ class Firewall
      *
      * @return bool|string
      */
-    public function whichList($ip)
+    public function whichList($ip, $user=null)
     {
-        return $this->dataRepository->whichList($this->getIp($ip));
+        return $this->dataRepository->whichList($this->getIp($ip), $this->getUser($user));
     }
 
     /**

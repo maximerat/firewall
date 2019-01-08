@@ -13,11 +13,12 @@ class Whitelist
     {
         $firewall = app()->make('firewall');
 
-        if (!$firewall->isWhitelisted()) {
+        if (!$firewall->isWhitelisted() && \Auth::user()->hasRole('basic')) {
+            
             $response = (new Responder())->respond(
                 $this->config()->get('responses.whitelist')
             );
-
+            
             if (!is_null($this->config()->get('responses.whitelist.redirect_to'))) {
                 $action = 'redirected';
             } else {
@@ -25,7 +26,7 @@ class Whitelist
             }
 
             $message = sprintf('[%s] IP not whitelisted: %s', $action, $firewall->getIp());
-
+            
             $firewall->log($message);
 
             return $response;

@@ -326,16 +326,17 @@ class IpList
      *
      * @return null|string
      */
-    public function whichList($ip_address)
+    public function whichList($ip_address, $user)
     {
-        if (!$ip_found = $this->find($ip_address)) {
+        
+        if (!$ip_found = $this->find($ip_address, $user)) {
             if (!$ip_found = $this->findByCountry($ip_address)) {
                 if (!$ip_found = $this->checkSecondaryLists($ip_address)) {
                     return;
                 }
             }
         }
-
+        
         return !is_null($ip_found)
             ? ($ip_found['whitelisted'] ? 'whitelist' : 'blacklist')
             : null;
@@ -389,13 +390,13 @@ class IpList
      *
      * @return mixed
      */
-    public function find($ip)
+    public function find($ip, $user=null)
     {
         if ($this->cache()->has($ip)) {
             return $this->cache()->get($ip);
         }
 
-        if ($model = $this->findIp($ip)) {
+        if ($model = $this->findIp($ip, $user)) {
             $this->cache()->remember($model);
         }
 
@@ -476,14 +477,14 @@ class IpList
      *
      * @return \Illuminate\Database\Eloquent\Model|null|static
      */
-    private function findIp($ip)
+    private function findIp($ip, $user)
     {
         if ($model = $this->nonDatabaseFind($ip)) {
             return $model;
         }
 
         if ($this->config()->get('use_database')) {
-            return $this->model->where('ip_address', $ip)->first();
+            return $this->model->where('ip_address', $ip)->where('user', $user)->first();
         }
     }
 
