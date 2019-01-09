@@ -97,7 +97,7 @@ class IpList
     {
         $ip = $this->find($ip, $user);
 
-        $ip->delete();
+        $ip->delete($ip, $user);
 
         $this->cache()->forget($ip->ip_address . '@' . $user);
 
@@ -354,7 +354,7 @@ class IpList
         $listed = $this->whichList($ip, $user);
 
         if (!empty($listed)) {
-            $this->delete($ip);
+            $this->delete($ip, $user);
 
             return true;
         }
