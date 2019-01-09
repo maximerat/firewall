@@ -103,9 +103,9 @@ class DataRepository
      *
      * @return bool
      */
-    public function addToList($whitelist, $ip, $force = false)
+    public function addToList($whitelist, $ip, $user, $force = false)
     {
-        return $this->ipList()->addToList($whitelist, $ip, $force);
+        return $this->ipList()->addToList($whitelist, $ip, $user, $force);
     }
 
     /**
@@ -161,8 +161,8 @@ class DataRepository
      *
      * @return bool
      */
-    public function remove($ip)
+    public function remove($ip, $user)
     {
-        return $this->ipList()->remove($ip);
+        return $this->ipList()->remove($ip, $user);
     }
 }

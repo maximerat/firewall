@@ -246,9 +246,9 @@ class Firewall
      *
      * @return bool
      */
-    public function remove($ip)
+    public function remove($ip, $user=null)
     {
-        return $this->dataRepository->remove($ip);
+        return $this->dataRepository->remove($ip, $user);
     }
 
     /**
@@ -305,9 +305,9 @@ class Firewall
      *
      * @return bool
      */
-    public function whitelist($ip, $force = false)
+    public function whitelist($ip, $user, $force = false)
     {
-        return $this->dataRepository->addToList(true, $ip, $force);
+        return $this->dataRepository->addToList(true, $ip, $user, $force);
     }
 
     /**

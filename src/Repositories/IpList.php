@@ -93,13 +93,13 @@ class IpList
      *
      * @return bool
      */
-    private function removeFromDatabaseList($ip)
+    private function removeFromDatabaseList($ip, $user)
     {
-        $ip = $this->find($ip);
+        $ip = $this->find($ip, $user);
 
         $ip->delete();
 
-        $this->cache()->forget($ip->ip_address);
+        $this->cache()->forget($ip->ip_address . '@' . $user);
 
         $this->messages()->addMessage(sprintf('%s removed from %s', $ip, $ip->whitelisted ? 'whitelist' : 'blacklist'));
     }
@@ -264,10 +264,10 @@ class IpList
      *
      * @return bool|array
      */
-    public function checkSecondaryLists($ip_address)
+    public function checkSecondaryLists($ip_address, $user)
     {
         foreach ($this->all() as $range) {
-            if ($this->ipAddress()->hostToIp($range->ip_address) == $ip_address || $this->ipAddress()->validRange($ip_address, $range)) {
+            if ($range->user === $user && ($this->ipAddress()->hostToIp($range->ip_address) == $ip_address || $this->ipAddress()->validRange($ip_address, $range))) {
                 return $range;
             }
         }
@@ -284,7 +284,7 @@ class IpList
      *
      * @return bool
      */
-    public function addToList($whitelist, $ip, $force = false)
+    public function addToList($whitelist, $ip, $user, $force = false)
     {
         $list = $whitelist
             ? 'whitelist'
@@ -294,7 +294,7 @@ class IpList
             return false;
         }
 
-        $listed = $this->whichList($ip);
+        $listed = $this->whichList($ip, $user);
 
         if ($listed == $list) {
             $this->messages()->addMessage(sprintf('%s is already %s', $ip, $list.'ed'));
@@ -306,7 +306,7 @@ class IpList
                     $this->remove($ip);
                 }
 
-                $this->addToProperList($whitelist, $ip);
+                $this->addToProperList($whitelist, $ip, $user);
 
                 $this->messages()->addMessage(sprintf('%s is now %s', $ip, $list.'ed'));
 
@@ -330,13 +330,13 @@ class IpList
     {
         
         if (!$ip_found = $this->find($ip_address, $user)) {
-            if (!$ip_found = $this->findByCountry($ip_address)) {
-                if (!$ip_found = $this->checkSecondaryLists($ip_address)) {
+            if (!$ip_found = $this->findByCountry($ip_address, $user)) {
+                if (!$ip_found = $this->checkSecondaryLists($ip_address, $user)) {
                     return;
                 }
             }
         }
-        
+
         return !is_null($ip_found)
             ? ($ip_found['whitelisted'] ? 'whitelist' : 'blacklist')
             : null;
@@ -349,9 +349,9 @@ class IpList
      *
      * @return bool
      */
-    public function remove($ip)
+    public function remove($ip, $user)
     {
-        $listed = $this->whichList($ip);
+        $listed = $this->whichList($ip, $user);
 
         if (!empty($listed)) {
             $this->delete($ip);
@@ -372,7 +372,7 @@ class IpList
      *
      * @return array|mixed
      */
-    private function addToArrayList($whitelist, $ip)
+    private function addToArrayList($whitelist, $ip, $user)
     {
         $data = $this->config()->get($list = $whitelist ? 'whitelist' : 'blacklist');
 
@@ -392,8 +392,8 @@ class IpList
      */
     public function find($ip, $user=null)
     {
-        if ($this->cache()->has($ip)) {
-            return $this->cache()->get($ip);
+        if ($this->cache()->has("$ip@$user")) {
+            return $this->cache()->get("$ip@$user");
         }
 
         if ($model = $this->findIp($ip, $user)) {
@@ -410,7 +410,7 @@ class IpList
      *
      * @return mixed
      */
-    public function findByCountry($country)
+    public function findByCountry($country, $user)
     {
         if ($this->config()->get('enable_country_search') && !is_null($country = $this->countries()->makeCountryFromString($country))) {
             return $this->find($country);
@@ -424,11 +424,11 @@ class IpList
      *
      * @return void
      */
-    public function addToProperList($whitelist, $ip)
+    public function addToProperList($whitelist, $ip, $user)
     {
         $this->config()->get('use_database') ?
-            $this->addToDatabaseList($whitelist, $ip) :
-            $this->addToArrayList($whitelist, $ip);
+            $this->addToDatabaseList($whitelist, $ip, $user) :
+            $this->addToArrayList($whitelist, $ip, $user);
     }
 
     /**
@@ -438,10 +438,10 @@ class IpList
      *
      * @return bool|void
      */
-    public function delete($ip)
+    public function delete($ip, $user)
     {
         $this->config()->get('use_database') ?
-            $this->removeFromDatabaseList($ip) :
+            $this->removeFromDatabaseList($ip, $user) :
             $this->removeFromArrayList($ip);
     }
 
@@ -512,12 +512,13 @@ class IpList
      *
      * @return \Illuminate\Database\Eloquent\Model
      */
-    private function addToDatabaseList($whitelist, $ip)
+    private function addToDatabaseList($whitelist, $ip, $user)
     {
         $this->model->unguard();
 
         $model = $this->model->create([
             'ip_address'  => $ip,
+            'user'        => $user,
             'whitelisted' => $whitelist,
         ]);
 

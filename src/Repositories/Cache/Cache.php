@@ -28,7 +28,7 @@ class Cache
     public function remember($model)
     {
         if (($timeout = $this->expireTime()) > 0) {
-            $this->put($model->ip_address, $model, $timeout);
+            $this->put($model->ip_address . "@" . $model->user, $model, $timeout);
         }
     }
 
